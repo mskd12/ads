@@ -11,7 +11,7 @@ pub struct Digest {
 }
 
 /// A node in a skip list
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node<T> {
     /// Value
     pub value: T,
@@ -129,6 +129,32 @@ impl<T: Copy + Serialize + Display> SkipList<T> {
         self.nodes.push(new_node);
     }
 
+    /// Get an inclusion proof for the node at height h w.r.t the latest head
+    pub fn get_inclusion_proof(&self, h: u64) -> Vec<Node<T> > {
+        assert!(h <= self.nodes.len() as u64);
+
+        let mut path = Vec::new();
+        let mut cur_node = self.nodes.last().expect("One node must exist");
+        while cur_node.height > h {
+            path.push(cur_node.clone());
+
+            let closest_finger = cur_node
+                .fingers
+                .keys()
+                .filter(|&&finger| finger >= h)
+                .min_by_key(|&&finger| finger - h)
+                .expect("At least one finger must be found");
+
+            cur_node = &self.nodes[*closest_finger as usize - 1]; // -1 because height is 1-indexed
+        }
+        
+        if cur_node.height < h {
+            panic!("Should not happen")
+        }
+
+        path
+    }
+
     /// Print finger indices w/o the digests
     pub fn short_print(&self) {
         for (i, node) in self.nodes.iter().enumerate() {
@@ -171,7 +197,7 @@ mod test {
     // }
 
     #[test]
-    pub fn test_skip_list_operations() {
+    pub fn test_skip_list_add() {
         let mut skip_list = SkipList::<u64>::new();
         let num_elements = 250;
         for i in 0..num_elements {
@@ -215,7 +241,19 @@ mod test {
         let fingers_200 = &node_200.fingers;
         assert_eq!(fingers_200.len(), 1, "Node at index 200 should have one finger");
         assert!(fingers_200.contains_key(&200), "Node at index 200 should have a finger at index 200");
+    }
 
+    #[test]
+    pub fn test_skip_list_inclusion() {
+        let mut skip_list = SkipList::<u64>::new();
+        for i in 1..1000 {
+            skip_list.add(i);
+        }
+
+        let proof = skip_list.get_inclusion_proof(345);
+        for node in &proof {
+            println!("Node Height: {}, Value: {}", node.height, node.value);
+        }
     }
 }
 
