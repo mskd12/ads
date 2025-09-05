@@ -1,24 +1,18 @@
-use merkle_forests::MerkleForest;
+use merkle_forests::MerkleMountainRange;
 
 fn main() {
-    let data_blocks: Vec<&[u8]> = vec![
-        b"block1", 
-        b"block2", 
-        b"block3", 
-    ];
+    let data_blocks: Vec<&[u8]> = vec![b"block1", b"block2", b"block3"];
 
-    let mut merkle_tree = MerkleForest::new(data_blocks);
-    // println!("Merkle Tree Root Hash: {:?}", &merkle_tree.digest());
-    // merkle_tree.pretty_print();
+    println!("data_blocks: {:?}", data_blocks);
 
-    merkle_tree.add_entry(b"block4");
-    // println!("Merkle Tree Root Hash: {:?}", &merkle_tree.digest());
-    // merkle_tree.pretty_print();
+    let mut mmr = MerkleMountainRange::new(data_blocks);
+    mmr.pretty_print();
 
-    merkle_tree.add_entry(b"block5");
-    merkle_tree.add_entry(b"block6");
-    merkle_tree.add_entry(b"block7");
-    merkle_tree.add_entry(b"block8");
-    merkle_tree.add_entry(b"block9");
-    merkle_tree.pretty_print();
+    mmr.add_entry(b"block4");
+    mmr.add_entry(b"block5");
+    mmr.add_entry(b"block6");
+    mmr.add_entry(b"block7");
+    mmr.add_entry(b"block8");
+    mmr.add_entry(b"block9");
+    mmr.pretty_print();
 }
